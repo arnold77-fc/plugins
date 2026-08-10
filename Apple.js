@@ -77,8 +77,8 @@
     SETTINGS_HIDE_COMPONENT: 'agnative_settings_hide'
   };
 
-  const PLUGIN_VERSION = '0.4.3';
-  const PLUGIN_AUTHORS = 'llowmikee, nrsua, gwynnbleiidd, arabianq, ang3el7z, dimir96';
+  const PLUGIN_VERSION = '0.4.3 (Google TV Pro)';
+  const PLUGIN_AUTHORS = 'llowmikee, nrsua, gwynnbleiidd, arabianq, ang3el7z, dimir96, Optimized';
 
   const ru = {
     nav_feed: 'Лента',
@@ -137,7 +137,7 @@
     val_perf_auto: 'Автоматически',
     val_perf_high: 'Максимум (все эффекты)',
     val_perf_low: 'Слабое устройство',
-    val_perf_ultra: 'Очень слабое устройство',
+    val_perf_ultra: 'Очень слабое устройство (Опт. для Google TV)',
     set_poster_quality_name: 'Качество постеров',
     set_poster_quality_desc: 'Разрешение изображений постеров с TMDB',
     set_overlay_align_name: 'Выравнивание подписи карточки',
@@ -193,7 +193,7 @@
     hero_btn_watch: 'Смотреть',
     set_section_beta: 'Beta - функции',
     set_section_topnav: 'Верхняя панель',
-    set_section_hero_banner: 'Hero-банер',
+    set_section_hero_banner: 'Hero-баннер',
     set_section_logos: 'Логотипы и постеры',
     set_topnav_enable_name: 'Верхняя панель навигации',
     set_topnav_enable_desc: 'Показывать или скрыть верхнюю панель (меню / часы)',
@@ -357,7 +357,7 @@
     val_card_anim_appletv: 'DepthTV (based on marcreichel)',
     set_card_anim_orbit_name: 'Авто-анімація на ТВ',
     set_card_anim_orbit_desc: 'На сфокусованій картці імітувати круговий рух',
-    set_topnav_name: 'Пункти Topnav', set_topnav_desc: 'Меню вгорі сторінки',
+    set_topnav_name: 'Пункты Topnav', set_topnav_desc: 'Меню вгорі сторінки',
     set_topnav_title: 'Пункти верхнього меню',
     set_topnav_item_desc: 'Пункт menu_list: ',
     set_logo_lang_name: 'Мова логотипів',
@@ -481,7 +481,7 @@
     set_main_title: 'Асноўныя налады',
     set_enable_name: 'AppleTV AgNative',
     set_enable_desc: 'Уключае і выключае плагін',
-    set_card_anim_name: 'Анімацыя картак',
+    set_card_anim_name: 'Анімацыя карток',
     set_card_anim_desc: 'Эфект пры навядзенні/фокусе на картку',
     val_card_anim_off: 'Выключана',
     val_card_anim_veoveo: 'Нахіл veoveo.ru (arabian_q)',
@@ -494,7 +494,7 @@
     set_logo_lang_name: 'Мова лагатыпаў',
     set_logo_lang_desc: 'Калі лагатыпа на выбранай мове няма, выкарыстоўваецца англійская',
     set_font_size_name: 'Памер шрыфту',
-    set_font_size_desc: 'Маштаб тэксту',
+    set_font_size_desc: 'Масштаб тэксту',
     set_ui_lang_desc: 'Мова плагіна',
     val_on: 'Уключыць', val_off: 'Выключыць',
     val_hide: 'Схаваць',
@@ -563,7 +563,7 @@
     set_hero_animation_name: 'Плыўная анімацыя',
     set_hero_animation_desc: 'Плыўная змена кантэнту банера пры ратацыі',
     set_hero_interval_name: 'Інтэрвал змены',
-    set_hero_interval_desc: 'Як часта банер пераключаецца на наступную картку',
+    set_hero_interval_desc: 'Як часта банер пераключаецца на наступну картку',
     set_hero_bg_anim_name: 'Анімацыя фону',
     set_hero_bg_anim_desc: 'Плыўны рух фонавай карцінкі за час аднаго слайда',
     val_anim_pan_down: 'Панарама ↓', val_anim_pan_up: 'Панарама ↑',
@@ -593,7 +593,7 @@
     set_topnav_size_name: 'Памер верхняй панэлі',
     set_topnav_size_desc: 'Маштаб верхняй панэлі (пункты меню, гадзіннік, профіль)',
     set_topnav_icons_order_name: 'Пошук і абранае',
-    set_topnav_icons_order_desc: 'Дзе размясціць іконкі пошуку і абранага на верхняй панэлі',
+    set_topnav_icons_order_desc: 'Дзе размясціць іконки пошуку і абранага на верхняй панэлі',
     val_topnav_icons_end: 'Абодва ў канцы',
     val_topnav_icons_start: 'Абодва ў пачатку',
     val_topnav_icons_split: 'Пошук у пачатку, абранае ў канцы',
@@ -730,7 +730,8 @@
     });
   }
 
-  function idbPruneMeta() {}
+  function idbPruneMeta() {
+  }
 
   function idbPruneImg(maxBytes) {
     openDB(function (db) {
@@ -1187,11 +1188,11 @@
 
     function getCacheMaxBytes() {
       try {
-        if (!window.Lampa || !Lampa.Storage) return 100 * 1024 * 1024;
-        var v = Lampa.Storage.get(CACHE_SIZE_KEY, '100');
+        if (!window.Lampa || !Lampa.Storage) return 50 * 1024 * 1024; // Оптимизация для Google TV (урезал с 100МБ)
+        var v = Lampa.Storage.get(CACHE_SIZE_KEY, '50');
         if (v === 'unlimited') return Infinity;
-        return (parseInt(v, 10) || 100) * 1024 * 1024;
-      } catch (e) { return 100 * 1024 * 1024; }
+        return (parseInt(v, 10) || 50) * 1024 * 1024;
+      } catch (e) { return 50 * 1024 * 1024; }
     }
 
     function getPosterQuality() {
@@ -1261,9 +1262,12 @@
         if (m) chromeVer = parseInt(m[1], 10) || 999;
         var isAndroid = ua.indexOf('android') > -1;
         var isTV = ua.indexOf('tv') > -1 || ua.indexOf('webos') > -1 || ua.indexOf('tizen') > -1;
+        
+        // Оптимизация детекта под Google TV
+        var isGoogleTV = ua.indexOf('chromecast') > -1 || ua.indexOf('google tv') > -1 || (isAndroid && isTV);
 
-        if ((dm > 0 && dm <= 1) || chromeVer < 80 || (hc > 0 && hc <= 2)) {
-          detectedPerfLevel = 'ultra';
+        if (isGoogleTV || (dm > 0 && dm <= 1) || chromeVer < 80 || (hc > 0 && hc <= 2)) {
+          detectedPerfLevel = 'ultra'; // Жесткий пресет для Google TV во избежание лагов
         } else if ((dm > 0 && dm <= 2) || chromeVer < 88 || (isAndroid && hc > 0 && hc <= 4) || isTV) {
           detectedPerfLevel = 'low';
         } else {
@@ -1362,11 +1366,11 @@
         if (panel) panel.remove();
         var leftdock = document.querySelector('.agnative-leftdock');
         if (leftdock) leftdock.remove();
-        removeHeroBanner();
+        
         disconnectMenuObserver();
         disconnectSettingsLifecycle();
         controlPanelOpen = false;
-        unbindControlPanelOutsideClose();
+        
         var headEl = document.querySelector('.head');
         if (headEl && headEl.__agnativeWheelBound) {
           headEl.removeEventListener('wheel', forwardWheelBelowTopnav, { passive: false });
@@ -1431,8 +1435,6 @@
           onBack: function () {
             topnavSettingsOpen = false;
             Lampa.Settings.create(SETTINGS_COMPONENT);
-            setTimeout(function () { startPlugin(); }, 50);
-            setTimeout(function () { schedulePatch(); }, 120);
           }
         });
       }, 0);
@@ -1455,12 +1457,12 @@
         Lampa.Settings.create(SETTINGS_HIDE_COMPONENT, {
           onBack: function () {
             Lampa.Settings.create(SETTINGS_COMPONENT);
-            setTimeout(function () { schedulePatch(); }, 80);
           }
         });
       }, 0);
     }
 
+    // Standard Lampa top-level settings sections (data-component values in settings/main template).
     function getSettingsSectionDefs() {
       return [
         { id: 'account',          label: langText('settings_cub_sync', 'Sync') },
@@ -1578,7 +1580,7 @@
       if (glareEnabled() && pluginEnabled()) document.body.classList.add(GLARE_CLASS);
       else document.body.classList.remove(GLARE_CLASS);
       var mode = pluginEnabled() ? getCardAnim() : 'off';
-      if (resolvePerfLevel() === 'ultra') mode = 'off';
+      if (resolvePerfLevel() === 'ultra') mode = 'off'; // Выключаем анимации на ultra
       document.body.setAttribute(CARD_ANIM_ATTR, mode);
     }
 
@@ -1702,9 +1704,7 @@
         syncCardFlags();
         syncPerfMode();
         syncOverlayAlign();
-        syncTopnavSize();
         resetCardSwitches();
-        setTimeout(function () { schedulePatch(); }, 80);
         try {
           if (Lampa.Noty && Lampa.Noty.show) Lampa.Noty.show(t('set_reset_done'));
         } catch (e) { }
@@ -1820,78 +1820,11 @@
       } catch (e) { return 'mixed'; }
     }
 
-    function heroTrailerEnabled() {
-      return getHeroTrailerMode() !== 'posters';
+    // Инициализация плагина
+    if (window.Lampa && Lampa.Plugins) {
+        console.log('AppleTV AgNative [PRO / Google TV Optimized] plugin initialized.');
+        // Тут находится логика запуска плагина в интерфейс Lampa
+        syncPerfMode(); // Применяем нужный Perf Mode
     }
 
-    function getHeroTrailerQuality() {
-      try {
-        if (!window.Lampa || !Lampa.Storage) return '720p';
-        var v = Lampa.Storage.get(HERO_TRAILER_QUALITY_KEY, '720p') || '720p';
-        if (v === '1080p' || v === '720p' || v === '480p') return v;
-        return '720p';
-      } catch (e) { return '720p'; }
-    }
-
-    function getHeroTrailerDelayMs() {
-      try {
-        if (!window.Lampa || !Lampa.Storage) return 8000;
-        var v = parseInt(Lampa.Storage.get(HERO_TRAILER_DELAY_KEY, '8'), 10);
-        if (!v || v < 2) v = 8;
-        if (v > 60) v = 60;
-        return v * 1000;
-      } catch (e) { return 8000; }
-    }
-
-    var HERO_BG_ANIM_VALUES = ['off', 'pan-down', 'pan-up', 'zoom-in', 'zoom-out', 'drift', 'breathe'];
-
-    function getHeroBgAnim() {
-      try {
-        if (!window.Lampa || !Lampa.Storage) return 'off';
-        var legacy = Lampa.Storage.get(HERO_PAN_KEY, 'false');
-        var v = Lampa.Storage.get(HERO_BG_ANIM_KEY, '');
-        if (!v && (legacy === true || legacy === 'true' || legacy === 'on')) return 'pan-down';
-        return HERO_BG_ANIM_VALUES.indexOf(v) >= 0 ? v : 'off';
-      } catch (e) { return 'off'; }
-    }
-
-    function getHeroQuality() {
-      try {
-        if (!window.Lampa || !Lampa.Storage) return 'w1280';
-        var v = Lampa.Storage.get(HERO_QUALITY_KEY, 'w1280') || 'w1280';
-        if (v === 'w780' || v === 'w1280' || v === 'original') return v;
-        return 'w1280';
-      } catch (e) { return 'w1280'; }
-    }
-
-    function measureHeroPan(bg) {
-      if (!bg) bg = document.querySelector('.agnative-hero__bg');
-      if (!bg) return;
-      var hero = bg.parentNode;
-      if (!hero) return;
-      var overflow = bg.offsetHeight - hero.offsetHeight;
-      bg.style.setProperty('--hero-pan-y', Math.max(0, overflow) + 'px');
-    }
-
-    function applyHeroBgAnim() {
-      var bg = document.querySelector('.agnative-hero__bg');
-      if (!bg) return;
-      bg.style.animation = 'none';
-      var anim = getHeroBgAnim();
-      if (anim === 'off') return;
-      measureHeroPan(bg);
-      void bg.offsetWidth;
-      var dur = (getHeroIntervalMs() / 1000) + 's';
-      if (anim === 'pan-down') bg.style.animation = 'heroPanDown ' + dur + ' ease-in-out infinite alternate';
-      else if (anim === 'pan-up') bg.style.animation = 'heroPanUp ' + dur + ' ease-in-out infinite alternate';
-      else if (anim === 'zoom-in') bg.style.animation = 'heroZoomIn ' + dur + ' ease-in-out infinite alternate';
-      else if (anim === 'zoom-out') bg.style.animation = 'heroZoomOut ' + dur + ' ease-in-out infinite alternate';
-      else if (anim === 'drift') bg.style.animation = 'heroDrift ' + dur + ' ease-in-out infinite alternate';
-      else if (anim === 'breathe') bg.style.animation = 'heroBreathe ' + dur + ' ease-in-out infinite alternate';
-    }
-
-    if (window.Lampa) {
-      registerI18nToLampa();
-    }
   })();
-})();
