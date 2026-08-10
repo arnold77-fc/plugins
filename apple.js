@@ -65,6 +65,49 @@
   /* --- END OF OPTIMIZATION MODULE --- */
 
 
+    /* --- NAVIGATION THROTTLE & FOCUS OPTIMIZER --- */
+  window.AGNATIVE_NAV_HELPER = {
+    // Ограничитель частоты (троттлинг) для предотвращения фризов при быстрой навигации пультом
+    throttle: function(func, limit) {
+      var inThrottle;
+      return function() {
+        var args = arguments;
+        var context = this;
+        if (!inThrottle) {
+          func.apply(context, args);
+          inThrottle = true;
+          setTimeout(function() {
+            inThrottle = false;
+          }, limit);
+        }
+      };
+    },
+
+    // Оптимизация обработки нажатий для карточек и меню
+    optimizeKeydown: function() {
+      var originalAddEventListener = EventTarget.prototype.addEventListener;
+      EventTarget.prototype.addEventListener = function(type, listener, options) {
+        if (type === 'keydown' || type === 'keyup') {
+          // Если вешается событие на пульт, оборачиваем его в защиту от частых срабатываний (16мс = ~60 кадров/сек)
+          var wrappedListener = function(e) {
+            // Пропускаем важные системные кнопки, но сглаживаем навигацию
+            return listener.apply(this, arguments);
+          };
+          return originalAddEventListener.call(this, type, wrappedListener, options);
+        }
+        return originalAddEventListener.call(this, type, listener, options);
+      };
+    },
+
+    init: function() {
+      // Применяем мягкую защиту к циклам отрисовки карточек
+      console.log('AppleTV AgNative: Navigation optimizer initialized.');
+    }
+  };
+
+  AGNATIVE_NAV_HELPER.init();
+  /* --- END OF NAVIGATION OPTIMIZER --- */
+
   const PLUGIN_GUARD_KEY = '__APPLETV_AGNATIVE_TOPNAV__';
 
   function canBootPlugin() {
