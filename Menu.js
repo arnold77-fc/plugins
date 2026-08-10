@@ -1,49 +1,50 @@
 (function () {
     'use strict';
 
-    // Защита от повторного запуска разных версий
-    if (window.menu_editor_v3_running) return;
-    window.menu_editor_v3_running = true;
+    // Защита от повторного запуска
+    if (window.menu_editor_v4_running) return;
+    window.menu_editor_v4_running = true;
 
     function startPlugin() {
-        console.log('[Menu Editor] Инициализация плагина...');
+        console.log('[Menu Editor v4] Старт инициализации...');
 
         function initialize() {
-            console.log('[Menu Editor] Плагин успешно стартовал.');
+            console.log('[Menu Editor v4] Плагин успешно запущен.');
 
-            // Уведомление о запуске
+            // Всплывающее уведомление при успешном старте
             setTimeout(() => {
                 if (window.Lampa && Lampa.Noty) {
-                    Lampa.Noty.show('✅ Menu Editor запущен!');
+                    Lampa.Noty.show('✅ Menu Editor (v4) активен!');
                 }
-            }, 1500);
+            }, 1200);
 
             // ==========================================
-            // 1. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ И СТИЛИ
+            // 1. УТИЛИТЫ И CSS
             // ==========================================
 
-            // Нормализация текста для точного сравнения (убирает nbsp, переносы, лишние пробелы)
+            // Очистка и нормализация текста для 100% совпадения
             function normText(str) {
-                if (!str) return '';
+                if (str === null || str === undefined) return '';
                 return str
+                    .toString()
                     .replace(/\u00a0/g, ' ')
                     .replace(/\s+/g, ' ')
                     .trim()
                     .toLowerCase();
             }
 
-            // Инъекция стилей с максимальным приоритетом
+            // Внедрение критических CSS правил
             function injectStyles() {
                 if ($('#menu_editor_style').length) return;
                 $('head').append(`
                     <style id="menu_editor_style">
-                        /* Блокировка отображения элементов через атрибут и классы */
+                        /* Принудительное скрытие */
                         [data-me-hidden="true"],
-                        html body .menu .menu__item[data-me-hidden="true"],
-                        html body .head .head__action[data-me-hidden="true"],
-                        html body .settings-folder[data-me-hidden="true"],
-                        html body .navigation-bar[data-me-hidden="true"],
-                        html body .me-hidden {
+                        .menu .menu__item[data-me-hidden="true"],
+                        .head .head__action[data-me-hidden="true"],
+                        .settings-folder[data-me-hidden="true"],
+                        .navigation-bar[data-me-hidden="true"],
+                        .me-hidden {
                             display: none !important;
                             opacity: 0 !important;
                             visibility: hidden !important;
@@ -56,10 +57,10 @@
                             border: none !important;
                         }
 
-                        /* Стили интерфейса редактора */
+                        /* Стили редактора */
                         .menu-edit-list {
                             padding: 10px 0;
-                            max-height: 70vh;
+                            max-height: 65vh;
                             overflow-y: auto;
                         }
                         .menu-edit-list__item {
@@ -67,16 +68,16 @@
                             align-items: center;
                             padding: 12px 15px;
                             margin-bottom: 8px;
-                            background: rgba(255, 255, 255, 0.05);
+                            background: rgba(255, 255, 255, 0.06);
                             border-radius: 8px;
                         }
                         .menu-edit-list__icon {
-                            width: 30px;
-                            height: 30px;
+                            width: 32px;
+                            height: 32px;
                             display: flex;
                             align-items: center;
                             justify-content: center;
-                            margin-right: 15px;
+                            margin-right: 12px;
                         }
                         .menu-edit-list__icon svg {
                             width: 24px;
@@ -85,25 +86,22 @@
                         .menu-edit-list__title {
                             flex: 1;
                             font-size: 16px;
-                            color: #fff;
+                            color: #ffffff;
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
                         }
                         .menu-edit-list__move,
                         .menu-edit-list__toggle {
-                            width: 36px;
-                            height: 36px;
+                            width: 38px;
+                            height: 38px;
                             display: flex;
                             align-items: center;
                             justify-content: center;
                             margin-left: 8px;
                             border-radius: 6px;
                             cursor: pointer;
-                            background: rgba(255, 255, 255, 0.1);
-                        }
-                        .menu-edit-list__toggle.active .dot {
-                            opacity: 1 !important;
+                            background: rgba(255, 255, 255, 0.12);
                         }
                     </style>
                 `);
@@ -111,7 +109,9 @@
 
             function hideEl($el) {
                 if (!$el || !$el.length) return;
-                $el.attr('data-me-hidden', 'true').addClass('me-hidden hide hidden');
+                $el.attr('data-me-hidden', 'true')
+                   .addClass('me-hidden hide hidden')
+                   .removeClass('selector'); // Снимаем фокус ТВ-пульта
                 $el.each(function () {
                     this.style.setProperty('display', 'none', 'important');
                     this.style.setProperty('opacity', '0', 'important');
@@ -121,7 +121,9 @@
 
             function showEl($el) {
                 if (!$el || !$el.length) return;
-                $el.removeAttr('data-me-hidden').removeClass('me-hidden hide hidden');
+                $el.removeAttr('data-me-hidden')
+                   .removeClass('me-hidden hide hidden')
+                   .addClass('selector'); // Возвращаем фокус
                 $el.each(function () {
                     this.style.removeProperty('display');
                     this.style.removeProperty('opacity');
@@ -132,7 +134,7 @@
             injectStyles();
 
             // ==========================================
-            // 2. ЯЗЫКОВЫЕ ПЕРЕВОДЫ
+            // 2. ЯЗЫКИ
             // ==========================================
             Lampa.Lang.add({
                 menu_editor_title: { ru: 'Редактирование меню', uk: 'Редагування меню', en: 'Menu Editor', zh: '菜单编辑器' },
@@ -140,8 +142,8 @@
                 menu_editor_top: { ru: 'Верхнее меню', uk: 'Верхнє меню', en: 'Top Menu', zh: '顶部菜单' },
                 menu_editor_settings: { ru: 'Меню настроек', uk: 'Меню налаштувань', en: 'Settings Menu', zh: '设置菜单' },
                 menu_editor_hide_nav: { ru: 'Скрыть панель навигации', uk: 'Приховати панель навігації', en: 'Hide Navigation Bar', zh: '隐藏导航栏' },
-                menu_editor_add_reload_button: { ru: 'Добавить кнопку перезагрузки', uk: 'Додати кнопку перезавантаження', en: 'Add reload button', zh: '添加刷新按钮' },
-                menu_editor_add_clear_cache_button: { ru: 'Добавить кнопку очистки кеша', uk: 'Додати кнопку очищення кешу', en: 'Add clear cache button', zh: '添加清除缓存按钮' },
+                menu_editor_add_reload_button: { ru: 'Кнопка перезагрузки в шапке', uk: 'Кнопка перезавантаження', en: 'Add reload button', zh: '添加刷新按钮' },
+                menu_editor_add_clear_cache_button: { ru: 'Кнопка очистки кеша в шапке', uk: 'Кнопка очищення кешу', en: 'Add clear cache button', zh: '添加清除缓存按钮' },
                 head_action_clear_cache: { ru: 'Очистить кеш', uk: 'Очистити кеш', en: 'Clear cache', zh: '清除缓存' },
                 head_action_reload: { ru: 'Перезагрузка', uk: 'Перезавантаження', en: 'Reload', zh: '重新加载' },
                 head_action_search: { ru: 'Поиск', en: 'Search', uk: 'Пошук', zh: '搜索' },
@@ -151,7 +153,7 @@
                 head_action_profile: { ru: 'Профиль', en: 'Profile', uk: 'Профіль', zh: '个人资料' },
                 head_action_fullscreen: { ru: 'Полный экран', en: 'Fullscreen', uk: 'Повноекранний режим', zh: '全屏' },
                 head_action_broadcast: { ru: 'Трансляции', en: 'Broadcast', uk: 'Трансляції', zh: '直播' },
-                no_name: { ru: 'Элемент без названия', en: 'Unnamed element', uk: 'Елемент без назви', zh: '未命名元素' }
+                no_name: { ru: 'Элемент', en: 'Element', uk: 'Елемент', zh: '元素' }
             });
 
             // ==========================================
@@ -169,9 +171,6 @@
 
                 let actionAttr = $el.attr('data-action') || $el.attr('action');
                 if (actionAttr) return 'action--' + actionAttr;
-
-                let titleText = $el.attr('title') || $el.find('title').text();
-                if (titleText) return 'title--' + normText(titleText);
 
                 return 'index--' + $el.index();
             }
@@ -194,7 +193,7 @@
             }
 
             // ==========================================
-            // 4. ПРИМЕНЕНИЕ НАСТРОЕК (ПРИНУДИТЕЛЬНОЕ СКРЫТИЕ)
+            // 4. ПРИМЕНЕНИЕ И ФИЛЬТРАЦИЯ ИНТЕРФЕЙСА
             // ==========================================
             function applyLeftMenu() {
                 let sort = Lampa.Storage.get('menu_sort', []);
@@ -205,12 +204,12 @@
                 let items = menu.find('.menu__item');
                 if (!items.length) return;
 
-                // Сброс видимости перед проверкой
                 items.each(function () {
                     let $this = $(this);
                     let txt = normText($this.find('.menu__text').text());
-                    let shouldHide = hide.some(h => normText(h) === txt && txt !== '');
+                    if (!txt) return;
 
+                    let shouldHide = hide.some(h => normText(h) === txt);
                     if (shouldHide) {
                         hideEl($this);
                     } else {
@@ -218,7 +217,6 @@
                     }
                 });
 
-                // Сортировка главного списка
                 if (sort.length) {
                     let mainList = menu.find('.menu__list:eq(0)');
                     if (mainList.length) {
@@ -239,7 +237,7 @@
                 let actionsContainer = $('.head__actions');
                 if (!actionsContainer.length) return;
 
-                // Создание кнопки "Очистить кеш"
+                // Доп. кнопка "Очистить кеш"
                 if (Lampa.Storage.get('add_clear_cache_button', false) && !$('.head__action--clear-cache').length) {
                     let clearBtn = Lampa.Head.addIcon(
                         `<svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg>`,
@@ -252,7 +250,7 @@
                     if (clearBtn) clearBtn.addClass('head__action head__action--clear-cache');
                 }
 
-                // Создание кнопки "Перезагрузка"
+                // Доп. кнопка "Перезагрузка"
                 if (Lampa.Storage.get('add_reload_button', false) && !$('.head__action--reload').length) {
                     let reloadBtn = Lampa.Head.addIcon(
                         `<svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor"/></svg>`,
@@ -291,8 +289,9 @@
                 settingsFolders.each(function () {
                     let $this = $(this);
                     let name = normText($this.find('.settings-folder__name').text());
-                    let shouldHide = hide.some(h => normText(h) === name && name !== '');
+                    if (!name) return;
 
+                    let shouldHide = hide.some(h => normText(h) === name);
                     if (shouldHide) {
                         hideEl($this);
                     } else {
@@ -330,74 +329,71 @@
             }
 
             // ==========================================
-            // 5. ОКНА РЕДАКТИРОВАНИЯ И СОХРАНЕНИЕ
+            // 5. РЕДАКТОРЫ (РАБОТАЮТ ЧЕРЕЗ ПАМЯТЬ/STORAGE)
             // ==========================================
             function editLeftMenu() {
-                let list = $('<div class="menu-edit-list"></div>');
-                let menuItems = $('.menu').find('.menu__item');
+                let currentHide = Lampa.Storage.get('menu_hide', []);
+                let itemsData = [];
 
-                if (!menuItems.length) {
-                    Lampa.Noty.show('Левое меню не найдено на экране');
+                // Считываем список
+                $('.menu .menu__item').each(function () {
+                    let txt = $(this).find('.menu__text').text().trim();
+                    let iconHtml = $(this).find('.menu__ico').html() || '';
+                    let isFirstList = $(this).closest('.menu__list').is('.menu__list:eq(0)');
+                    if (txt && !itemsData.some(i => normText(i.title) === normText(txt))) {
+                        itemsData.push({ title: txt, icon: iconHtml, isFirstList: isFirstList });
+                    }
+                });
+
+                if (!itemsData.length) {
+                    let savedSort = Lampa.Storage.get('menu_sort', []);
+                    savedSort.forEach(txt => {
+                        if (txt) itemsData.push({ title: txt, icon: '', isFirstList: true });
+                    });
+                }
+
+                if (!itemsData.length) {
+                    Lampa.Noty.show('Откройте боковое меню один раз для чтения списка');
                     return;
                 }
 
-                menuItems.each(function () {
-                    let item_orig = $(this);
-                    let item_clone = $(this).clone();
-                    let rawText = item_clone.find('.menu__text').text().trim();
-                    if (!rawText) return;
+                let list = $('<div class="menu-edit-list"></div>');
 
-                    let isFirstSection = item_orig.closest('.menu__list').is('.menu__list:eq(0)');
-
-                    let moveButtons = isFirstSection ? `
+                itemsData.forEach((item) => {
+                    let isHidden = currentHide.some(h => normText(h) === normText(item.title));
+                    let moveBtns = item.isFirstList ? `
                         <div class="menu-edit-list__move move-up selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 12L11 3L20 12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>
                         <div class="menu-edit-list__move move-down selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 2L11 11L20 2" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>` : '';
 
-                    let item_sort = $(`<div class="menu-edit-list__item" data-name="${rawText}">
-                            <div class="menu-edit-list__icon"></div>
-                            <div class="menu-edit-list__title">${rawText}</div>
-                            ${moveButtons}
-                            <div class="menu-edit-list__toggle toggle selector"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1.89" y="1.78" width="21.79" height="21.79" rx="3.5" stroke="currentColor" stroke-width="3"/><path d="M7.44 12.96L10.81 16.33L18.12 9.02" stroke="currentColor" stroke-width="3" class="dot" opacity="0" stroke-linecap="round"/></svg></div>
-                        </div>`);
+                    let row = $(`<div class="menu-edit-list__item" data-title="${item.title}">
+                        <div class="menu-edit-list__icon">${item.icon}</div>
+                        <div class="menu-edit-list__title">${item.title}</div>
+                        ${moveBtns}
+                        <div class="menu-edit-list__toggle toggle selector"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1.89" y="1.78" width="21.79" height="21.79" rx="3.5" stroke="currentColor" stroke-width="3"/><path d="M7.44 12.96L10.81 16.33L18.12 9.02" stroke="currentColor" stroke-width="3" class="dot" opacity="${isHidden ? 0 : 1}" stroke-linecap="round"/></svg></div>
+                    </div>`);
 
-                    item_sort.find('.menu-edit-list__icon').append(item_clone.find('.menu__ico').html());
-
-                    if (isFirstSection) {
-                        item_sort.find('.move-up').on('hover:enter', () => {
-                            let prev = item_sort.prev();
-                            while (prev.length && prev.data('isSecondSection')) prev = prev.prev();
-                            if (prev.length) {
-                                item_sort.insertBefore(prev);
-                                item_orig.insertBefore(item_orig.prev());
-                            }
-                        });
-                        item_sort.find('.move-down').on('hover:enter', () => {
-                            let next = item_sort.next();
-                            while (next.length && next.data('isSecondSection')) next = next.next();
-                            if (next.length) {
-                                item_sort.insertAfter(next);
-                                item_orig.insertAfter(item_orig.next());
-                            }
-                        });
-                    } else {
-                        item_sort.data('isSecondSection', true);
-                    }
-
-                    let isHidden = item_orig.attr('data-me-hidden') === 'true' || item_orig.hasClass('me-hidden');
-                    item_sort.find('.dot').attr('opacity', isHidden ? 0 : 1);
-
-                    item_sort.find('.toggle').on('hover:enter', () => {
-                        let curHidden = item_orig.attr('data-me-hidden') === 'true' || item_orig.hasClass('me-hidden');
-                        if (curHidden) {
-                            showEl(item_orig);
-                            item_sort.find('.dot').attr('opacity', 1);
+                    row.find('.toggle').on('hover:enter', function () {
+                        let normT = normText(item.title);
+                        let idx = currentHide.findIndex(h => normText(h) === normT);
+                        if (idx !== -1) {
+                            currentHide.splice(idx, 1);
+                            row.find('.dot').attr('opacity', 1);
                         } else {
-                            hideEl(item_orig);
-                            item_sort.find('.dot').attr('opacity', 0);
+                            currentHide.push(item.title);
+                            row.find('.dot').attr('opacity', 0);
                         }
                     });
 
-                    list.append(item_sort);
+                    row.find('.move-up').on('hover:enter', () => {
+                        let prev = row.prev();
+                        if (prev.length) row.insertBefore(prev);
+                    });
+                    row.find('.move-down').on('hover:enter', () => {
+                        let next = row.next();
+                        if (next.length) row.insertAfter(next);
+                    });
+
+                    list.append(row);
                 });
 
                 Lampa.Modal.open({
@@ -406,63 +402,71 @@
                     size: 'small',
                     scroll_to_center: true,
                     onBack: () => {
-                        saveLeftMenu();
+                        let newSort = [];
+                        list.find('.menu-edit-list__item').each(function () {
+                            newSort.push($(this).attr('data-title'));
+                        });
+                        Lampa.Storage.set('menu_sort', newSort);
+                        Lampa.Storage.set('menu_hide', currentHide);
                         Lampa.Modal.close();
+                        applyAll();
                         Lampa.Controller.toggle('settings_component');
                     }
                 });
             }
 
             function editTopMenu() {
-                let list = $('<div class="menu-edit-list"></div>');
-                let topItems = $('.head').find('.head__action');
+                let currentHide = Lampa.Storage.get('head_menu_hide', []);
+                let itemsData = [];
 
-                if (!topItems.length) {
+                $('.head .head__action').each(function () {
+                    let key = getHeadActionKey($(this));
+                    let name = getHeadActionName(key, $(this));
+                    let svgHtml = $(this).find('svg').parent().html() || '';
+                    if (key && !itemsData.some(i => i.key === key)) {
+                        itemsData.push({ key: key, name: name, icon: svgHtml });
+                    }
+                });
+
+                if (!itemsData.length) {
                     Lampa.Noty.show('Верхнее меню не найдено');
                     return;
                 }
 
-                topItems.each(function () {
-                    let item_orig = $(this);
-                    let item_clone = $(this).clone();
-                    let key = getHeadActionKey(item_orig);
-                    let displayName = getHeadActionName(key, item_orig);
+                let list = $('<div class="menu-edit-list"></div>');
 
-                    let item_sort = $(`<div class="menu-edit-list__item" data-key="${key}">
-                            <div class="menu-edit-list__icon"></div>
-                            <div class="menu-edit-list__title">${displayName}</div>
-                            <div class="menu-edit-list__move move-up selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 12L11 3L20 12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>
-                            <div class="menu-edit-list__move move-down selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 2L11 11L20 2" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>
-                            <div class="menu-edit-list__toggle toggle selector"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1.89" y="1.78" width="21.79" height="21.79" rx="3.5" stroke="currentColor" stroke-width="3"/><path d="M7.44 12.96L10.81 16.33L18.12 9.02" stroke="currentColor" stroke-width="3" class="dot" opacity="0" stroke-linecap="round"/></svg></div>
-                        </div>`);
+                itemsData.forEach((item) => {
+                    let isHidden = currentHide.includes(item.key);
 
-                    let svg = item_clone.find('svg');
-                    if (svg.length) item_sort.find('.menu-edit-list__icon').append(svg.clone());
+                    let row = $(`<div class="menu-edit-list__item" data-key="${item.key}">
+                        <div class="menu-edit-list__icon">${item.icon}</div>
+                        <div class="menu-edit-list__title">${item.name}</div>
+                        <div class="menu-edit-list__move move-up selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 12L11 3L20 12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>
+                        <div class="menu-edit-list__move move-down selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 2L11 11L20 2" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>
+                        <div class="menu-edit-list__toggle toggle selector"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1.89" y="1.78" width="21.79" height="21.79" rx="3.5" stroke="currentColor" stroke-width="3"/><path d="M7.44 12.96L10.81 16.33L18.12 9.02" stroke="currentColor" stroke-width="3" class="dot" opacity="${isHidden ? 0 : 1}" stroke-linecap="round"/></svg></div>
+                    </div>`);
 
-                    item_sort.find('.move-up').on('hover:enter', () => {
-                        let prev = item_sort.prev();
-                        if (prev.length) { item_sort.insertBefore(prev); item_orig.insertBefore(item_orig.prev()); }
-                    });
-                    item_sort.find('.move-down').on('hover:enter', () => {
-                        let next = item_sort.next();
-                        if (next.length) { item_sort.insertAfter(next); item_orig.insertAfter(item_orig.next()); }
-                    });
-
-                    let isHidden = item_orig.attr('data-me-hidden') === 'true' || item_orig.hasClass('me-hidden');
-                    item_sort.find('.dot').attr('opacity', isHidden ? 0 : 1);
-
-                    item_sort.find('.toggle').on('hover:enter', () => {
-                        let curHidden = item_orig.attr('data-me-hidden') === 'true' || item_orig.hasClass('me-hidden');
-                        if (curHidden) {
-                            showEl(item_orig);
-                            item_sort.find('.dot').attr('opacity', 1);
+                    row.find('.toggle').on('hover:enter', function () {
+                        let idx = currentHide.indexOf(item.key);
+                        if (idx !== -1) {
+                            currentHide.splice(idx, 1);
+                            row.find('.dot').attr('opacity', 1);
                         } else {
-                            hideEl(item_orig);
-                            item_sort.find('.dot').attr('opacity', 0);
+                            currentHide.push(item.key);
+                            row.find('.dot').attr('opacity', 0);
                         }
                     });
 
-                    list.append(item_sort);
+                    row.find('.move-up').on('hover:enter', () => {
+                        let prev = row.prev();
+                        if (prev.length) row.insertBefore(prev);
+                    });
+                    row.find('.move-down').on('hover:enter', () => {
+                        let next = row.next();
+                        if (next.length) row.insertAfter(next);
+                    });
+
+                    list.append(row);
                 });
 
                 Lampa.Modal.open({
@@ -471,8 +475,14 @@
                     size: 'small',
                     scroll_to_center: true,
                     onBack: () => {
-                        saveTopMenu();
+                        let newSort = [];
+                        list.find('.menu-edit-list__item').each(function () {
+                            newSort.push($(this).attr('data-key'));
+                        });
+                        Lampa.Storage.set('head_menu_sort', newSort);
+                        Lampa.Storage.set('head_menu_hide', currentHide);
                         Lampa.Modal.close();
+                        applyAll();
                         Lampa.Controller.toggle('settings_component');
                     }
                 });
@@ -485,51 +495,56 @@
                     let folders = settings.find('.settings-folder');
 
                     if (!settings.length || !folders.length) {
-                        Lampa.Noty.show('Меню настроек еще не загружено');
+                        Lampa.Noty.show('Настройки еще не загружены');
                         return;
                     }
 
-                    let list = $('<div class="menu-edit-list"></div>');
+                    let currentHide = Lampa.Storage.get('settings_menu_hide', []);
+                    let itemsData = [];
+
                     folders.each(function () {
-                        let item_orig = $(this);
-                        let item_clone = $(this).clone();
-                        let name = item_clone.find('.settings-folder__name').text().trim();
+                        let name = $(this).find('.settings-folder__name').text().trim();
+                        let iconHtml = $(this).find('.settings-folder__icon').html() || '';
+                        if (name && !itemsData.some(i => normText(i.name) === normText(name))) {
+                            itemsData.push({ name: name, icon: iconHtml });
+                        }
+                    });
 
-                        let item_sort = $(`<div class="menu-edit-list__item" data-name="${name}">
-                                <div class="menu-edit-list__icon"></div>
-                                <div class="menu-edit-list__title">${name}</div>
-                                <div class="menu-edit-list__move move-up selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 12L11 3L20 12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>
-                                <div class="menu-edit-list__move move-down selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 2L11 11L20 2" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>
-                                <div class="menu-edit-list__toggle toggle selector"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1.89" y="1.78" width="21.79" height="21.79" rx="3.5" stroke="currentColor" stroke-width="3"/><path d="M7.44 12.96L10.81 16.33L18.12 9.02" stroke="currentColor" stroke-width="3" class="dot" opacity="0" stroke-linecap="round"/></svg></div>
-                            </div>`);
+                    let list = $('<div class="menu-edit-list"></div>');
 
-                        let icon = item_clone.find('.settings-folder__icon svg, .settings-folder__icon img');
-                        if (icon.length) item_sort.find('.menu-edit-list__icon').append(icon.clone());
+                    itemsData.forEach((item) => {
+                        let isHidden = currentHide.some(h => normText(h) === normText(item.name));
 
-                        item_sort.find('.move-up').on('hover:enter', () => {
-                            let prev = item_sort.prev();
-                            if (prev.length) { item_sort.insertBefore(prev); item_orig.insertBefore(item_orig.prev()); }
-                        });
-                        item_sort.find('.move-down').on('hover:enter', () => {
-                            let next = item_sort.next();
-                            if (next.length) { item_sort.insertAfter(next); item_orig.insertAfter(item_orig.next()); }
-                        });
+                        let row = $(`<div class="menu-edit-list__item" data-name="${item.name}">
+                            <div class="menu-edit-list__icon">${item.icon}</div>
+                            <div class="menu-edit-list__title">${item.name}</div>
+                            <div class="menu-edit-list__move move-up selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 12L11 3L20 12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>
+                            <div class="menu-edit-list__move move-down selector"><svg width="22" height="14" viewBox="0 0 22 14" fill="none"><path d="M2 2L11 11L20 2" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg></div>
+                            <div class="menu-edit-list__toggle toggle selector"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="1.89" y="1.78" width="21.79" height="21.79" rx="3.5" stroke="currentColor" stroke-width="3"/><path d="M7.44 12.96L10.81 16.33L18.12 9.02" stroke="currentColor" stroke-width="3" class="dot" opacity="${isHidden ? 0 : 1}" stroke-linecap="round"/></svg></div>
+                        </div>`);
 
-                        let isHidden = item_orig.attr('data-me-hidden') === 'true' || item_orig.hasClass('me-hidden');
-                        item_sort.find('.dot').attr('opacity', isHidden ? 0 : 1);
-
-                        item_sort.find('.toggle').on('hover:enter', () => {
-                            let curHidden = item_orig.attr('data-me-hidden') === 'true' || item_orig.hasClass('me-hidden');
-                            if (curHidden) {
-                                showEl(item_orig);
-                                item_sort.find('.dot').attr('opacity', 1);
+                        row.find('.toggle').on('hover:enter', function () {
+                            let normN = normText(item.name);
+                            let idx = currentHide.findIndex(h => normText(h) === normN);
+                            if (idx !== -1) {
+                                currentHide.splice(idx, 1);
+                                row.find('.dot').attr('opacity', 1);
                             } else {
-                                hideEl(item_orig);
-                                item_sort.find('.dot').attr('opacity', 0);
+                                currentHide.push(item.name);
+                                row.find('.dot').attr('opacity', 0);
                             }
                         });
 
-                        list.append(item_sort);
+                        row.find('.move-up').on('hover:enter', () => {
+                            let prev = row.prev();
+                            if (prev.length) row.insertBefore(prev);
+                        });
+                        row.find('.move-down').on('hover:enter', () => {
+                            let next = row.next();
+                            if (next.length) row.insertAfter(next);
+                        });
+
+                        list.append(row);
                     });
 
                     Lampa.Modal.open({
@@ -538,72 +553,22 @@
                         size: 'small',
                         scroll_to_center: true,
                         onBack: () => {
-                            saveSettingsMenu();
+                            let newSort = [];
+                            list.find('.menu-edit-list__item').each(function () {
+                                newSort.push($(this).attr('data-name'));
+                            });
+                            Lampa.Storage.set('settings_menu_sort', newSort);
+                            Lampa.Storage.set('settings_menu_hide', currentHide);
                             Lampa.Modal.close();
+                            applyAll();
                             Lampa.Controller.toggle('settings_component');
                         }
                     });
-                }, 300);
-            }
-
-            function saveLeftMenu() {
-                let sort = [];
-                let hide = [];
-
-                $('.menu .menu__list:eq(0) .menu__item').each(function () {
-                    let txt = $(this).find('.menu__text').text().trim();
-                    if (txt) sort.push(txt);
-                });
-
-                $('.menu .menu__item').each(function () {
-                    let txt = $(this).find('.menu__text').text().trim();
-                    let isHidden = $(this).attr('data-me-hidden') === 'true' || $(this).hasClass('me-hidden');
-                    if (txt && isHidden) hide.push(txt);
-                });
-
-                Lampa.Storage.set('menu_sort', sort);
-                Lampa.Storage.set('menu_hide', hide);
-                applyLeftMenu();
-            }
-
-            function saveTopMenu() {
-                let sort = [];
-                let hide = [];
-
-                $('.head__action').each(function () {
-                    let key = getHeadActionKey($(this));
-                    if (key) {
-                        sort.push(key);
-                        let isHidden = $(this).attr('data-me-hidden') === 'true' || $(this).hasClass('me-hidden');
-                        if (isHidden) hide.push(key);
-                    }
-                });
-
-                Lampa.Storage.set('head_menu_sort', sort);
-                Lampa.Storage.set('head_menu_hide', hide);
-                applyTopMenu();
-            }
-
-            function saveSettingsMenu() {
-                let sort = [];
-                let hide = [];
-
-                $('.settings-folder').each(function () {
-                    let name = $(this).find('.settings-folder__name').text().trim();
-                    if (name) {
-                        sort.push(name);
-                        let isHidden = $(this).attr('data-me-hidden') === 'true' || $(this).hasClass('me-hidden');
-                        if (isHidden) hide.push(name);
-                    }
-                });
-
-                Lampa.Storage.set('settings_menu_sort', sort);
-                Lampa.Storage.set('settings_menu_hide', hide);
-                applySettingsMenu();
+                }, 250);
             }
 
             // ==========================================
-            // 6. ИНТЕГРАЦИЯ В НАСТРОЙКИ LAMPA
+            // 6. ИНТЕГРАЦИЯ В НАСТРОЙКИ
             // ==========================================
             function addSettings() {
                 try {
@@ -654,17 +619,15 @@
                         field: { name: Lampa.Lang.translate('menu_editor_hide_nav') },
                         onChange: function () { applyNavBar(); }
                     });
-
-                    console.log('[Menu Editor] Раздел настроек успешно зарегестрирован');
                 } catch (e) {
-                    console.error('[Menu Editor] Ошибка регистрации настроек:', e);
+                    console.error('[Menu Editor] Ошибка регистратора настроек:', e);
                 }
             }
 
             addSettings();
 
             // ==========================================
-            // 7. НАБЛЮДАТЕЛИ СОБЫТИЙ И ТАЙМЕРЫ
+            // 7. НАБЛЮДАТЕЛИ И ХУКИ
             // ==========================================
             let isApplying = false;
             let observerTimeout = null;
@@ -687,34 +650,33 @@
                     observerTimeout = setTimeout(() => {
                         applyAll();
                         isApplying = false;
-                    }, 150);
+                    }, 100);
                 }
             });
 
             if (document.body) {
-                observer.observe(document.body, { childList: true, subtree: true, attributes: false });
+                observer.observe(document.body, { childList: true, subtree: true });
             }
 
-            // Фоновый интервал проверки для гарантии
-            setInterval(applyAll, 1200);
+            // Фоновый интервал для непредвиденных перерисовок
+            setInterval(applyAll, 1000);
 
-            // Подписка на системные события Lampa
+            // Слушатели событий Lampa
             Lampa.Listener.follow('menu', (e) => {
-                if (e.type === 'end' || e.type === 'open') setTimeout(applyLeftMenu, 50);
+                if (e.type === 'end' || e.type === 'open') setTimeout(applyLeftMenu, 30);
             });
 
             Lampa.Listener.follow('activity', (e) => {
-                if (e.type === 'start') setTimeout(applyAll, 100);
+                if (e.type === 'start') setTimeout(applyAll, 50);
             });
 
             if (Lampa.Settings && Lampa.Settings.listener) {
                 Lampa.Settings.listener.follow('open', () => {
-                    setTimeout(applySettingsMenu, 200);
+                    setTimeout(applySettingsMenu, 150);
                 });
             }
         }
 
-        // Запуск после готовности Lampa
         if (window.appready) {
             initialize();
         } else {
