@@ -139,16 +139,13 @@
                         free: true,
                         nosave: true,
                         onChange: function (val) {
-                            // Динамічно показуємо зміну прямо під час вводу
                             document.documentElement.style.setProperty('--ni-info-margin', val);
                         }
                     }, function (new_value) {
                         if (new_value !== undefined) {
-                            // Зберігаємо і застосовуємо
                             Lampa.Storage.set('ni_info_margin', new_value);
                             applyDynamicStyles();
                         } else {
-                            // Якщо скасували ввід (натиснули Назад) — повертаємо старе значення
                             applyDynamicStyles();
                         }
                     });
@@ -575,7 +572,16 @@
 
         clearTimeout(card.__newInterfaceLabelTimer);
         const text = (card.data && (card.data.title || card.data.name || card.data.original_title || card.data.original_name)) ? (card.data.title || card.data.name || card.data.original_title || card.data.original_name).trim() : '';
-        const seek = element.querySelector('.new-interface-card-title');
+
+        // Видалення дубльованих елементів плагіна, якщо вони існували раніше
+        const existingLabels = element.querySelectorAll('.new-interface-card-title');
+        if (existingLabels.length > 1) {
+            for (let i = 1; i < existingLabels.length; i++) {
+                if (existingLabels[i].parentNode) existingLabels[i].parentNode.removeChild(existingLabels[i]);
+            }
+        }
+
+        const seek = existingLabels[0] || element.querySelector('.new-interface-card-title');
 
         if (!text) {
             if (seek && seek.parentNode) seek.parentNode.removeChild(seek);
@@ -1300,17 +1306,34 @@
         body.ni-hide-runtime .new-interface-info__runtime,
         body.ni-hide-runtime .dot-genre-runtime { display: none !important; }
         
-        /* Підписи під картками */
+        /* Приховуємо нативні підписи Lampa в плагіні, щоб запобігти дублюванню */
+        .new-interface .card > .card__title,
+        .new-interface .card > .card__name,
+        .new-interface .card > .card__text,
+        .new-interface .card > .card__details,
+        .new-interface .card > .card__year,
+        .new-interface .card > .card__age,
+        .new-interface .card > .card__bottom,
+        .new-interface .card__view ~ .card__title,
+        .new-interface .card__view ~ .card__name,
+        .new-interface .card__view ~ .card__text,
+        .new-interface .card__view ~ .card__details,
+        .new-interface .card__view ~ .card__year,
+        .new-interface .card__view ~ .card__age,
+        .new-interface .card__view ~ .card__bottom { display: none !important; }
+
+        /* Підписи під картками при вимкненні в налаштуваннях */
         body.ni-hide-captions .new-interface .card__view ~ .card__title,
         body.ni-hide-captions .new-interface .card__view ~ .card__name,
         body.ni-hide-captions .new-interface .card__view ~ .card__text,
         body.ni-hide-captions .new-interface .card__view ~ .card__details,
         body.ni-hide-captions .new-interface .card__view ~ .card__year,
-        body.ni-hide-captions .new-interface .card__bottom { display: none !important; }
+        body.ni-hide-captions .new-interface .card__bottom,
+        body.ni-hide-captions .new-interface-card-title { display: none !important; }
         body.ni-hide-captions .new-interface .card > *:not(.card__view):not(.card__promo) { display: none !important; }
 
-        /* Прибираємо "сміття" Lampa поверх логотипів на картках */
-        body:not(.ni-hide-card-logos) .new-interface-card-title { display: none !important; }
+        /* Прибираємо кастомний заголовок поверх логотипів на картках */
+        body:not(.ni-hide-card-logos) .card.has-logo .new-interface-card-title { display: none !important; }
 
         /* --- КАРТКИ: Горизонтальні vs Вертикальні --- */
         body:not(.ni-cards-vertical) .new-interface .card.card--wide,
@@ -1348,7 +1371,7 @@
         body.ni-layout-1col .new-interface-info__left { flex: 0 0 auto; }
         body.ni-layout-1col .new-interface-info__right { padding-top: 0.5em; flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column; }
         body.ni-layout-1col .new-interface-info__textblock { margin-top: 0; display: flex; flex-direction: column; gap: 0.5em; }
-        body.ni-layout-1col .new-interface-info__description { max-width: 60%; } /* Зменшено на чверть */
+        body.ni-layout-1col .new-interface-info__description { max-width: 60%; }
         
         .new-interface-info__head { color: rgba(255, 255, 255, 0.6); margin-bottom: 1em; font-size: 1.3em; min-height: 1em; }
         .new-interface-info__head span { color: #fff; }
@@ -1381,17 +1404,17 @@
         .new-interface .card__promo, .new-interface .card .card-watched { display: none !important; }
         
         /* Зсув ліній вгору/вниз залежно від орієнтації */
-        'body.ni-cards-vertical html:not(.is-smarttv) .new-interface-h { --ni-line-head-shift: -2vh; --ni-line-body-shift: -3vh; }' +
-        'body.ni-cards-vertical html.is-smarttv .new-interface-h { --ni-line-head-shift: 0; --ni-line-body-shift: 0; }' +
-        'body:not(.ni-cards-vertical) .new-interface-h { --ni-line-head-shift: 0; --ni-line-body-shift: 0; }' +
+        body.ni-cards-vertical html:not(.is-smarttv) .new-interface-h { --ni-line-head-shift: -2vh; --ni-line-body-shift: -3vh; }
+        body.ni-cards-vertical html.is-smarttv .new-interface-h { --ni-line-head-shift: 0; --ni-line-body-shift: 0; }
+        body:not(.ni-cards-vertical) .new-interface-h { --ni-line-head-shift: 0; --ni-line-body-shift: 0; }
 
         /* КОМПЕНСАЦІЯ: Опускаємо рядки вниз, якщо підписи вимкнені */
-        'body.ni-hide-captions:not(.ni-cards-vertical) .new-interface-h { --ni-line-head-shift: 5vh; --ni-line-body-shift: 5vh; }' +
-        'body.ni-hide-captions.ni-cards-vertical html:not(.is-smarttv) .new-interface-h { --ni-line-head-shift: 2vh; --ni-line-body-shift: 2vh; }' +
-        'body.ni-hide-captions.ni-cards-vertical html.is-smarttv .new-interface-h { --ni-line-head-shift: 4vh; --ni-line-body-shift: 4vh; }' +
+        body.ni-hide-captions:not(.ni-cards-vertical) .new-interface-h { --ni-line-head-shift: 5vh; --ni-line-body-shift: 5vh; }
+        body.ni-hide-captions.ni-cards-vertical html:not(.is-smarttv) .new-interface-h { --ni-line-head-shift: 2vh; --ni-line-body-shift: 2vh; }
+        body.ni-hide-captions.ni-cards-vertical html.is-smarttv .new-interface-h { --ni-line-head-shift: 4vh; --ni-line-body-shift: 4vh; }
 
-        '.new-interface-h .items-line__head { position: relative; top: var(--ni-line-head-shift); z-index: 2; }' +
-        '.new-interface-h .items-line__body > .scroll.scroll--horizontal { position: relative; top: var(--ni-line-body-shift); z-index: 1; }' +
+        .new-interface-h .items-line__head { position: relative; top: var(--ni-line-head-shift); z-index: 2; }
+        .new-interface-h .items-line__body > .scroll.scroll--horizontal { position: relative; top: var(--ni-line-body-shift); z-index: 1; }
 
         /* Світла тема */
         body.light--version .new-interface-info__head { color: rgba(0, 0, 0, 0.7); }
@@ -1424,5 +1447,4 @@
         }
     }
 
-    
 })();
