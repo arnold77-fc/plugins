@@ -29,7 +29,7 @@
 
     function addCombinedRow(feed) {
         Lampa.ContentRows.add({
-            index: 25 + feed.id,
+            index: 5 + feed.id,
             name: 'news_v3_row_' + feed.id,
             title: feed.title,
             screen: ['main'],
