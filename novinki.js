@@ -21,10 +21,11 @@
         uk: { ru: '🇷🇺 Російські новинки', ua: '🇺🇦 Українські новинки', world: '🌍 Світові новинки' }
     }[lang === 'uk' ? 'uk' : 'ru'];
 
+    // Изменен порядок: сначала мировые (id: 1), затем русские (id: 2) и украинские (id: 3)
     var FEEDS_CONFIG = [
-        { id: 1, title: TITLES.ru, movie: '&with_origin_country=RU', tv: '&with_original_language=ru' }, 
-        { id: 2, title: TITLES.ua, movie: '&with_origin_country=UA', tv: '&with_origin_country=UA' },
-        { id: 3, title: TITLES.world, movie: '&vote_count.gte=10', tv: '&vote_count.gte=10' }
+        { id: 1, title: TITLES.world, movie: '&vote_count.gte=10', tv: '&vote_count.gte=10' },
+        { id: 2, title: TITLES.ru, movie: '&with_origin_country=RU', tv: '&with_original_language=ru' }, 
+        { id: 3, title: TITLES.ua, movie: '&with_origin_country=UA', tv: '&with_origin_country=UA' }
     ];
 
     function addCombinedRow(feed) {
@@ -40,7 +41,6 @@
                     var apiBase = 'https://api.themoviedb.org/3/discover/';
                     
                     var results = [];
-                    // Запрашиваем по 1 странице для максимальной производительности
                     var movieParams = 'api_key=' + apiKey + '&language=' + lang + '&sort_by=primary_release_date.desc&primary_release_date.gte=' + dateStart + '&primary_release_date.lte=' + today + feed.movie + '&page=1';
                     var tvParams = 'api_key=' + apiKey + '&language=' + lang + '&sort_by=first_air_date.desc&first_air_date.gte=' + dateStart + '&first_air_date.lte=' + today + feed.tv + '&page=1';
 
@@ -68,7 +68,6 @@
                             });
 
                             callback({
-                                // Лимит 30: идеальный баланс между контентом и скоростью появления плашек сезонов
                                 results: unique.slice(0, 30),
                                 title: feed.title
                             });
